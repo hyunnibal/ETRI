@@ -90,21 +90,21 @@ for identifier in identifiers:
             sample[:,:,0] = time_axes
         return sample
 
-        
+
     def generator(z, c):
         with tf.variable_scope("generator") as scope:
-            
+
             # each step of the generator takes a random seed + the conditional embedding
             repeated_encoding = tf.tile(c, [1, tf.shape(z)[1]])
             repeated_encoding = tf.reshape(repeated_encoding, [tf.shape(z)[0], tf.shape(z)[1],
-                                                               cond_dim])        
+                                                               cond_dim])
             generator_input = tf.concat([repeated_encoding, z], 2)
 
             cell = tf.contrib.rnn.LSTMCell(num_units=hidden_units_g, state_is_tuple=True)
             rnn_outputs, rnn_states = tf.nn.dynamic_rnn(
                 cell=cell,
                 dtype=tf.float32,
-                sequence_length=[seq_length]*batch_size,
+                sequence_length=[seq_length] * batch_size,
                 inputs=generator_input)
             rnn_outputs_2d = tf.reshape(rnn_outputs, [-1, hidden_units_g])
             logits_2d = tf.matmul(rnn_outputs_2d, W_out_G) + b_out_G
@@ -118,14 +118,14 @@ for identifier in identifiers:
             # correct?
             if reuse:
                 scope.reuse_variables()
-             
-            # each step of the generator takes one time step of the signal to evaluate + 
-            # its conditional embedding  
+
+            # each step of the generator takes one time step of the signal to evaluate +
+            # its conditional embedding
             repeated_encoding = tf.tile(c, [1, tf.shape(x)[1]])
             repeated_encoding = tf.reshape(repeated_encoding, [tf.shape(x)[0], tf.shape(x)[1],
                                                                cond_dim])
             decoder_input = tf.concat([repeated_encoding, x], 2)
-            
+
             cell = tf.contrib.rnn.LSTMCell(num_units=hidden_units_d, state_is_tuple=True)
             rnn_outputs, rnn_states = tf.nn.dynamic_rnn(
                 cell=cell,
@@ -150,7 +150,7 @@ for identifier in identifiers:
                                                                          labels=tf.zeros_like(D_logit_fake)))
     D_loss = D_loss_real + D_loss_fake
     G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake,
-                                                                labels=tf.ones_like(D_logit_fake)))
+                                                                    labels=tf.ones_like(D_logit_fake)))
 
     D_solver = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(D_loss, var_list=discriminator_vars)
     G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=generator_vars)
@@ -158,19 +158,17 @@ for identifier in identifiers:
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    #plot the ouput from the same seed
+    # plot the ouput from the same seed
     vis_z = sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)
     X_mb_vis, Y_mb_vis = get_batch(train_seqs, train_targets, batch_size, 0)
-    vis_sample = sess.run(G_sample, feed_dict={Z: vis_z, CG:Y_mb_vis})
-    plotting.vis_eICU_patients_downsampled(vis_sample, seq_length, 
-                identifier=identifier, idx=0)
-
+    vis_sample = sess.run(G_sample, feed_dict={Z: vis_z, CG: Y_mb_vis})
+    plotting.vis_eICU_patients_downsampled(vis_sample, seq_length,
+                                           identifier=identifier, idx=0)
 
     # visualise some real samples
     vis_real = np.float32(vali_seqs[np.random.choice(len(vali_seqs), size=batch_size), :, :])
-    plotting.vis_eICU_patients_downsampled(vis_real, seq_length, 
-                identifier=identifier + '_real', idx=0)
-
+    plotting.vis_eICU_patients_downsampled(vis_real, seq_length,
+                                           identifier=identifier + '_real', idx=0)
 
     trace = open('./experiments/traces/' + identifier + '.trace.txt', 'w')
     trace.write('epoch D_loss G_loss time\n')
@@ -183,7 +181,7 @@ for identifier in identifiers:
         for g in range(G_rounds):
             X_mb, Y_mb = get_batch(train_seqs, train_targets, batch_size, batch_idx + g + offset)
             _, G_loss_curr = sess.run([G_solver, G_loss],
-                                      feed_dict={CG:Y_mb,
+                                      feed_dict={CG: Y_mb,
                                                  Z: sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)})
         return G_loss_curr
 
@@ -195,7 +193,7 @@ for identifier in identifiers:
             # probably it is not a good idea...
             X_mb, Y_mb = get_batch(train_seqs, train_targets, batch_size, batch_idx + d + offset)
             _, D_loss_curr = sess.run([D_solver, D_loss],
-                                      feed_dict={CD:Y_mb, CG:Y_mb, X:X_mb, 
+                                      feed_dict={CD: Y_mb, CG: Y_mb, X: X_mb,
                                                  Z: sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)})
 
         return D_loss_curr
@@ -209,19 +207,19 @@ for identifier in identifiers:
                 G_loss_curr = train_generator(batch_idx, 0)
                 D_loss_curr = train_discriminator(batch_idx, G_rounds)
             else:
-                D_loss_curr = train_discriminator(batch_idx, 0)           
+                D_loss_curr = train_discriminator(batch_idx, 0)
                 G_loss_curr = train_generator(batch_idx, D_rounds)
 
         t = time.time() - t0
-        print(num_epoch,'\t', D_loss_curr, '\t', G_loss_curr, '\t', t)
-       
+        print(num_epoch, '\t', D_loss_curr, '\t', G_loss_curr, '\t', t)
+
         # record/visualise
         trace.write(str(num_epoch) + ' ' + str(D_loss_curr) + ' ' + str(G_loss_curr) + ' ' + str(t) + '\n')
         if num_epoch % 10 == 0:
             trace.flush()
 
-        vis_sample = sess.run(G_sample, feed_dict={Z: vis_z, CG:Y_mb_vis})
-        plotting.vis_eICU_patients_downsampled(vis_sample, seq_length, identifier=identifier, idx=num_epoch+1)
+        vis_sample = sess.run(G_sample, feed_dict={Z: vis_z, CG: Y_mb_vis})
+        plotting.vis_eICU_patients_downsampled(vis_sample, seq_length, identifier=identifier, idx=num_epoch + 1)
 
         # save synthetic data
         if num_epoch % 50 == 0:
@@ -232,16 +230,15 @@ for identifier in identifiers:
             for batch_idx in range(int(len(train_seqs) / batch_size)):
                 X_mb, Y_mb = get_batch(train_seqs, train_targets, batch_size, batch_idx)
                 z_ = sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)
-                gen_samples_mb = sess.run(G_sample, feed_dict={Z: z_, CG:Y_mb})
+                gen_samples_mb = sess.run(G_sample, feed_dict={Z: z_, CG: Y_mb})
                 gen_samples.append(gen_samples_mb)
                 labels_gen_samples.append(Y_mb)
-                print (batch_idx)
-
+                print(batch_idx)
 
             for batch_idx in range(int(len(vali_seqs) / batch_size)):
                 X_mb, Y_mb = get_batch(vali_seqs, vali_targets, batch_size, batch_idx)
                 z_ = sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)
-                gen_samples_mb = sess.run(G_sample, feed_dict={Z: z_, CG:Y_mb})
+                gen_samples_mb = sess.run(G_sample, feed_dict={Z: z_, CG: Y_mb})
                 gen_samples.append(gen_samples_mb)
                 labels_gen_samples.append(Y_mb)
 

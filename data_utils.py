@@ -37,7 +37,7 @@ def get_samples_and_labels(settings):
     elif settings['data'] == 'eICU_task':
         # always load eICU
         samples, pdf, labels = get_data('eICU_task', {})
-#		del samples, labels
+        # del samples, labels
         train, vali, test = samples['train'].astype(float), samples['vali'].astype(float), samples['test'].astype(float)
         train_labels, vali_labels, test_labels = labels['train'].astype(float), labels['vali'].astype(float), labels['test'].astype(float)
         assert train_labels.shape[1] == settings['cond_dim']
@@ -129,6 +129,9 @@ def get_data(data_type, data_options=None):
     elif data_type == 'gp_rbf':
         print(data_options)
         samples, pdf = GP(**data_options, kernel='rbf')
+    elif data_type == 'periodic':
+        print(data_options)
+        samples, pdf = GP(**data_options, kernel='periodic')
     elif data_type == 'linear':
         samples, pdf = linear(**data_options)
     elif data_type == 'eICU_task':
