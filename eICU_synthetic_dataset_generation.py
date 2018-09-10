@@ -25,7 +25,7 @@ if not os.path.isdir(wd):
     os.mkdir(wd)
 
 # runs the experiment 5 times
-identifiers = ['eICU_cdgan_synthetic_dataset_r' + str(i) for i in range(2,5)]
+identifiers = ['eICU_cdgan_synthetic_dataset_r' + str(i) for i in range(0)]
 
 for identifier in identifiers:
 
