@@ -25,7 +25,7 @@ test_seqs = samples['test'].reshape(-1,16,4)
 train_targets = labels['train']
 vali_targets = labels['vali']
 test_targets = labels['test']
-train_seqs, vali_seqs, test_seqs = data_utils.scale_data(train_seqs, vali_seqs, test_seqs)
+train_seqs, vali_seqs, test_seqs = data_utils.normalise_data(train_seqs, vali_seqs, test_seqs)
 
 print ("data loaded.")
 
@@ -33,7 +33,7 @@ print ("data loaded.")
 
 aurocs_all_runs = []
 auprcs_all_runs = []
-for oo in range(5):
+for oo in range(2,5):
 
 	print (oo)
 
@@ -71,13 +71,13 @@ for oo in range(5):
 				estimator = RandomForestClassifier(n_estimators=100)
 				estimator.fit(train_seqs_r, train_targets[:,col_num])
 				accuracies.append(estimator.score(vali_seqs_r, vali_targets[:,col_num]))
-				preds = estimator.predict(vali_seqs_r)
-				precisions.append(precision_score(y_pred=preds, y_true=vali_targets[:,col_num]))
-				recalls.append(recall_score(y_pred=preds, y_true=vali_targets[:,col_num]))
+				preds = estimator.predict(vali_seqs_r).astype(int)
+				precisions.append(precision_score(y_pred=preds, y_true=vali_targets[:,col_num].astype(int)))
+				recalls.append(recall_score(y_pred=preds, y_true=vali_targets[:,col_num].astype(int)))
 				preds = estimator.predict_proba(vali_seqs_r)
-				fpr, tpr, thresholds = roc_curve(vali_targets[:,col_num], preds[:,1])
+				fpr, tpr, thresholds = roc_curve(vali_targets[:,col_num].astype(int), preds[:,1])
 				aurocs.append(auc(fpr, tpr))
-				precision, recall, thresholds = precision_recall_curve(vali_targets[:,col_num], preds[:,1])
+				precision, recall, thresholds = precision_recall_curve(vali_targets[:,col_num].astype(int), preds[:,1])
 				auprcs.append(auc(recall, precision))
 
 			all_aurocs.append(aurocs)
@@ -115,13 +115,13 @@ for oo in range(5):
 		estimator = RandomForestClassifier(n_estimators=100)
 		estimator.fit(train_seqs_r, train_targets[:,col_num])
 		accuracies.append(estimator.score(test_seqs_r, test_targets[:,col_num]))
-		preds = estimator.predict(test_seqs_r)
-		precisions.append(precision_score(y_pred=preds, y_true=test_targets[:,col_num]))
-		recalls.append(recall_score(y_pred=preds, y_true=test_targets[:,col_num]))
-		preds = estimator.predict_proba(test_seqs_r)
-		fpr, tpr, thresholds = roc_curve(test_targets[:,col_num], preds[:,1])
+		preds = estimator.predict(test_seqs_r).astype(int)
+		precisions.append(precision_score(y_pred=preds, y_true=test_targets[:,col_num].astype(int)))
+		recalls.append(recall_score(y_pred=preds, y_true=test_targets[:,col_num].astype(int)))
+		preds = estimator.predict_proba(test_seqs_r).astype(int)
+		fpr, tpr, thresholds = roc_curve(test_targets[:,col_num].astype(int), preds[:,1])
 		aurocs.append(auc(fpr, tpr))
-		precision, recall, thresholds = precision_recall_curve(test_targets[:,col_num], preds[:,1])
+		precision, recall, thresholds = precision_recall_curve(test_targets[:,col_num].astype(int), preds[:,1])
 		auprcs.append(auc(recall, precision))
 	print(accuracies)
 	print(precisions)
