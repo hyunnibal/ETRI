@@ -307,7 +307,7 @@ def plot_trace(identifier, xmax=250, final=False, dp=False):
     axarr[0].legend(handles=[d_handle, g_handle], labels=['discriminator', 'generator'])
 
     # mmd
-    da_mmd = da.reindex[:, ['epoch', 'mmd2']].dropna()
+    da_mmd = da.loc[:, ['epoch', 'mmd2']].dropna()
     axarr[1].plot(da_mmd.epoch, da_mmd.mmd2, color='purple')
     axarr[1].set_ylabel('MMD$^2$')
     #axarr[1].set_ylim(0.0, 0.04)
@@ -323,7 +323,7 @@ def plot_trace(identifier, xmax=250, final=False, dp=False):
             axarr[1].plot((-10, xmax+10), (tick, tick), ls='dotted', lw=0.5, color='black', alpha=0.4, zorder=0)
 
     # log likelihood
-    da_ll = da.reindex[:, ['epoch', 'll', 'real_ll']].dropna()
+    da_ll = da.loc[:, ['epoch', 'll', 'real_ll']].dropna()
     axarr[2].plot(da_ll.epoch, da_ll.ll, color='orange')
     axarr[2].plot(da_ll.epoch, da_ll.real_ll, color='orange', alpha=0.5)
     axarr[2].set_ylabel('likelihood')

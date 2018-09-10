@@ -285,7 +285,7 @@ def eICU_task(predict_label=False):
     """
     Load the eICU data for the extreme-value prediction task
     """
-    path = './experiments/data/etri.data.npy'
+    path = './experiments/data/eicu.data.npy'
     data = np.load(path).item()
     # convert it into similar format
     labels = {'train': data['Y_train'], 'vali': data['Y_vali'], 'test': data['Y_test']}
