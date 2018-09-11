@@ -33,7 +33,7 @@ print ("data loaded.")
 
 aurocs_all_runs = []
 auprcs_all_runs = []
-for oo in range(2,5):
+for oo in range(0,1):
 
 	print (oo)
 

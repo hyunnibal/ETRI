@@ -10,12 +10,10 @@ vali_size = round(label.values.shape[0]*0.2)
 test_size = label.values.shape[0] - train_size - vali_size
 
 total = {'X_train': data.values[range(0, train_size)],
-         'X_vali': data.values[range(0, vali_size)],
-         'X_test': data.values[range(0, test_size)],
-         'Y_train': data.values[range(0, train_size)],
-         'Y_vali': data.values[range(0, vali_size)],
-         'Y_test': data.values[range(0, test_size)]}
+         'X_vali': data.values[range(train_size, train_size+vali_size)],
+         'X_test': data.values[range(train_size+vali_size, label.values.shape[0])],
+         'Y_train': label.values[range(0, train_size)],
+         'Y_vali': label.values[range(train_size, train_size+vali_size)],
+         'Y_test': label.values[range(train_size+vali_size, label.values.shape[0])]}
 
 np.save('./experiments/data/eicu.data',total)
-
-data = np.load(path).item()
