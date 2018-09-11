@@ -155,7 +155,7 @@ test_seqs = samples['test'].reshape(-1,16,4)
 train_targets = labels['train']
 vali_targets = labels['vali']
 test_targets = labels['test']
-train_seqs, vali_seqs, test_seqs = data_utils.scale_data(train_seqs, vali_seqs, test_seqs)
+train_seqs, vali_seqs, test_seqs = data_utils.normalise_data(train_seqs, vali_seqs, test_seqs)
 
 print ("data loaded.")
 
