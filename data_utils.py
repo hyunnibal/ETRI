@@ -288,8 +288,8 @@ def eICU_task(predict_label=False):
     path = './experiments/data/eicu.data.npy'
     data = np.load(path).item()
     # convert it into similar format
-    labels = {'train': data['Y_train'], 'vali': data['Y_vali'], 'test': data['Y_test']}
-    samples = {'train': data['X_train'], 'vali': data['X_vali'], 'test': data['X_test']}
+    labels = {'train': data['Y_train'].astype(np.float), 'vali': data['Y_vali'].astype(np.float), 'test': data['Y_test'].astype(np.float)}
+    samples = {'train': data['X_train'].astype(np.float), 'vali': data['X_vali'].astype(np.float), 'test': data['X_test'].astype(np.float)}
     # reshape
     #for (k, X) in samples.items():
     #    samples[k] = X.reshape(-1, 16, 4)
