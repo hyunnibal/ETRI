@@ -28,110 +28,109 @@ test_targets = labels['test']
 train_seqs, vali_seqs, test_seqs = data_utils.normalise_data(train_seqs, vali_seqs, test_seqs)
 
 print ("data loaded.")
-
+dir = './synthetic_eICU_datasets/'
+identifier = 'eicu'
 # iterate over all dataset versions generated after running the GAN for 5 times
 
 aurocs_all_runs = []
 auprcs_all_runs = []
-for oo in range(0,1):
 
-	print (oo)
+# find the best "dataset epoch", meaning the GAN epoch that generated the dataset
+# validation is only done in some of the tasks, and the others are considered unknown
+# (use validation set to pick best GAN epoch, then get result on test set)
 
-	# find the best "dataset epoch", meaning the GAN epoch that generated the dataset
-	# validation is only done in some of the tasks, and the others are considered unknown
-	# (use validation set to pick best GAN epoch, then get result on test set)
+vali_seqs_r = vali_seqs.reshape((vali_seqs.shape[0], -1))
+test_seqs_r = test_seqs.reshape((test_seqs.shape[0], -1))
 
-	vali_seqs_r = vali_seqs.reshape((vali_seqs.shape[0], -1))
-	test_seqs_r = test_seqs.reshape((test_seqs.shape[0], -1))
+all_aurocs_exp = []
+all_auprcs_exp = []
 
-	all_aurocs_exp = []
-	all_auprcs_exp = []
-	for nn in np.arange(50,1050,50):
+for nn in np.arange(50,1000,50):
 
-		with open('./synthetic_eICU_datasets/samples_eICU_cdgan_synthetic_dataset_r' + str(oo) + '_' + str(nn) + '.pk', 'rb') as f:
-		    synth_data = pickle.load(file=f)
-		with open('./synthetic_eICU_datasets/labels_eICU_cdgan_synthetic_dataset_r' + str(oo) + '_' + str(nn) + '.pk', 'rb') as f:
-		    synth_labels = pickle.load(file=f)
+    with open(dir + 'samples' + '_' + identifier + '_' + str(nn) + '.pk', 'rb') as f:
+        synth_data = pickle.load(file=f)
+    with open(dir + 'labels' + '_' + identifier + '_' + str(nn) + '.pk', 'rb') as f:
+        synth_labels = pickle.load(file=f)
 
-		train_seqs = synth_data
-		train_targets = synth_labels
-		train_seqs_r = train_seqs.reshape((train_seqs.shape[0], -1))
+    train_seqs = synth_data
+    train_targets = synth_labels
+    train_seqs_r = train_seqs.reshape((train_seqs.shape[0], -1))
 
-		all_aurocs = []
-		all_auprcs = []
+    all_aurocs = []
+    all_auprcs = []
 
-		# in case we want to train each random forest multiple times with each dataset
-		for exp_num in range(1):
-			accuracies = []
-			precisions = []
-			recalls = []
-			aurocs = []
-			auprcs = []
-			for col_num in range(train_targets.shape[1]):
-				estimator = RandomForestClassifier(n_estimators=100)
-				estimator.fit(train_seqs_r, train_targets[:,col_num])
-				accuracies.append(estimator.score(vali_seqs_r, vali_targets[:,col_num]))
-				preds = estimator.predict(vali_seqs_r).astype(int)
-				precisions.append(precision_score(y_pred=preds, y_true=vali_targets[:,col_num].astype(int)))
-				recalls.append(recall_score(y_pred=preds, y_true=vali_targets[:,col_num].astype(int)))
-				preds = estimator.predict_proba(vali_seqs_r)
-				fpr, tpr, thresholds = roc_curve(vali_targets[:,col_num].astype(int), preds[:,1])
-				aurocs.append(auc(fpr, tpr))
-				precision, recall, thresholds = precision_recall_curve(vali_targets[:,col_num].astype(int), preds[:,1])
-				auprcs.append(auc(recall, precision))
+    # in case we want to train each random forest multiple times with each dataset
+    for exp_num in range(1):
+        accuracies = []
+        precisions = []
+        recalls = []
+        aurocs = []
+        auprcs = []
+        for col_num in range(train_targets.shape[1]):
+            estimator = RandomForestClassifier(n_estimators=100)
+            estimator.fit(train_seqs_r, train_targets[:,col_num])
+            accuracies.append(estimator.score(vali_seqs_r, vali_targets[:,col_num]))
+            preds = estimator.predict(vali_seqs_r)
+            precisions.append(precision_score(y_pred=preds, y_true=vali_targets[:,col_num]))
+            recalls.append(recall_score(y_pred=preds, y_true=vali_targets[:,col_num]))
+            preds = estimator.predict_proba(vali_seqs_r)
+            fpr, tpr, thresholds = roc_curve(vali_targets[:,col_num], preds[:,1])
+            aurocs.append(auc(fpr, tpr))
+            precision, recall, thresholds = precision_recall_curve(vali_targets[:,col_num], preds[:,1])
+            auprcs.append(auc(recall, precision))
 
-			all_aurocs.append(aurocs)
-			all_auprcs.append(auprcs)
+        all_aurocs.append(aurocs)
+        all_auprcs.append(auprcs)
 
-		all_aurocs_exp.append(all_aurocs)
-		all_auprcs_exp.append(all_auprcs)
+    all_aurocs_exp.append(all_aurocs)
+    all_auprcs_exp.append(all_auprcs)
 
 
-	#with open('all_aurocs_exp_r' + str(oo) + '.pk', 'wb') as f:
-	#	pickle.dump(file=f, obj=all_aurocs_exp)
+#with open('all_aurocs_exp_r' + str(oo) + '.pk', 'wb') as f:
+#	pickle.dump(file=f, obj=all_aurocs_exp)
 
-	#with open('all_auprcs_exp_r' + str(oo) + '.pk', 'wb') as f:
-	#	pickle.dump(file=f, obj=all_auprcs_exp)
+#with open('all_auprcs_exp_r' + str(oo) + '.pk', 'wb') as f:
+#	pickle.dump(file=f, obj=all_auprcs_exp)
 
-	best_idx = np.argmax(np.array(all_aurocs_exp).sum(axis=1)[:,[0,2,4]].sum(axis=1) + np.array(all_auprcs_exp).sum(axis=1)[:,[0,2,4]].sum(axis=1))
-	best = np.arange(50,1050,50)[best_idx]
+best_idx = np.argmax(np.array(all_aurocs_exp).sum(axis=1)[:,[0,2,4]].sum(axis=1) + np.array(all_auprcs_exp).sum(axis=1)[:,[0,2,4]].sum(axis=1))
+best = np.arange(50,1050,50)[best_idx]
 
-	with open('./synthetic_eICU_datasets/samples_eICU_cdgan_synthetic_dataset_r' + str(oo) + '_' + str(best) + '.pk', 'rb') as f:
-	    synth_data = pickle.load(file=f)
-	with open('./synthetic_eICU_datasets/labels_eICU_cdgan_synthetic_dataset_r' + str(oo) + '_' + str(best) + '.pk', 'rb') as f:
-	    synth_labels = pickle.load(file=f)
+with open(dir + 'samples' + '_' + identifier + '_' + str(best) + '.pk', 'rb') as f:
+    synth_data = pickle.load(file=f)
+with open(dir + 'labels' + '_' + identifier + '_' + str(best) + '.pk', 'rb') as f:
+    synth_labels = pickle.load(file=f)
 
 
-	train_seqs = synth_data
-	train_targets = synth_labels
-	train_seqs_r = train_seqs.reshape((train_seqs.shape[0], -1))
+train_seqs = synth_data
+train_targets = synth_labels
+train_seqs_r = train_seqs.reshape((train_seqs.shape[0], -1))
 
-	accuracies = []
-	precisions = []
-	recalls = []
-	aurocs = []
-	auprcs = []
-	for col_num in range(train_targets.shape[1]):
-		estimator = RandomForestClassifier(n_estimators=100)
-		estimator.fit(train_seqs_r, train_targets[:,col_num])
-		accuracies.append(estimator.score(test_seqs_r, test_targets[:,col_num]))
-		preds = estimator.predict(test_seqs_r).astype(int)
-		precisions.append(precision_score(y_pred=preds, y_true=test_targets[:,col_num].astype(int)))
-		recalls.append(recall_score(y_pred=preds, y_true=test_targets[:,col_num].astype(int)))
-		preds = estimator.predict_proba(test_seqs_r).astype(int)
-		fpr, tpr, thresholds = roc_curve(test_targets[:,col_num].astype(int), preds[:,1])
-		aurocs.append(auc(fpr, tpr))
-		precision, recall, thresholds = precision_recall_curve(test_targets[:,col_num].astype(int), preds[:,1])
-		auprcs.append(auc(recall, precision))
-	print(accuracies)
-	print(precisions)
-	print(recalls)
-	print(aurocs)
-	print(auprcs)
-	print ("----------------------------")
+accuracies = []
+precisions = []
+recalls = []
+aurocs = []
+auprcs = []
+for col_num in range(train_targets.shape[1]):
+    estimator = RandomForestClassifier(n_estimators=100)
+    estimator.fit(train_seqs_r, train_targets[:,col_num])
+    accuracies.append(estimator.score(test_seqs_r, test_targets[:,col_num]))
+    preds = estimator.predict(test_seqs_r)
+    precisions.append(precision_score(y_pred=preds, y_true=test_targets[:,col_num]))
+    recalls.append(recall_score(y_pred=preds, y_true=test_targets[:,col_num]))
+    preds = estimator.predict_proba(test_seqs_r)
+    fpr, tpr, thresholds = roc_curve(test_targets[:,col_num], preds[:,1])
+    aurocs.append(auc(fpr, tpr))
+    precision, recall, thresholds = precision_recall_curve(test_targets[:,col_num], preds[:,1])
+    auprcs.append(auc(recall, precision))
+print(accuracies)
+print(precisions)
+print(recalls)
+print(aurocs)
+print(auprcs)
+print ("----------------------------")
 
-	aurocs_all_runs.append(aurocs)
-	auprcs_all_runs.append(auprcs)
+aurocs_all_runs.append(aurocs)
+auprcs_all_runs.append(auprcs)
 
 
 allr = np.vstack(aurocs_all_runs)
