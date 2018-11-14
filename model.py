@@ -209,10 +209,10 @@ def GAN_solvers(D_loss, G_loss, learning_rate, batch_size, total_examples,
                 batches_per_lot=batches_per_lot).minimize(D_loss, var_list=discriminator_vars)
     else:
         D_loss_mean_over_batch = tf.reduce_mean(D_loss)
-        D_solver = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(D_loss_mean_over_batch, var_list=discriminator_vars)
+        D_solver = tf.train.AdamOptimizer(learning_rate=learning_rate,beta1=0.0,beta2=0.9).minimize(D_loss_mean_over_batch, var_list=discriminator_vars)
         priv_accountant = None
     G_loss_mean_over_batch = tf.reduce_mean(G_loss)
-    G_solver = tf.train.AdamOptimizer().minimize(G_loss_mean_over_batch, var_list=generator_vars)
+    G_solver = tf.train.AdamOptimizer(learning_rate=learning_rate,beta1=0.0,beta2=0.9).minimize(G_loss_mean_over_batch, var_list=generator_vars)
     return D_solver, G_solver, priv_accountant
 
 # --- to do with the model --- #
