@@ -1,2 +1,0 @@
-epoch time D_loss G_loss mmd2 that pdf real_pdf
-0 17.900375604629517 0.3349842 3.4118025 0.9557431 541.9399 NA NA
