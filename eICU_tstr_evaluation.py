@@ -1,13 +1,5 @@
-import data_utils
-import pandas as pd
 import numpy as np
-import tensorflow as tf
-import math, random, itertools
-import pickle
-import time
-import json
-import os
-import math
+import random
 import data_utils
 import pickle
 from sklearn.ensemble import RandomForestClassifier
@@ -45,7 +37,7 @@ test_seqs_r = test_seqs.reshape((test_seqs.shape[0], -1))
 all_aurocs_exp = []
 all_auprcs_exp = []
 
-for nn in np.arange(50,1000,50):
+for nn in np.arange(50,1005,50):
 
     with open(dir + 'samples' + '_' + identifier + '_' + str(nn) + '.pk', 'rb') as f:
         synth_data = pickle.load(file=f)
@@ -86,14 +78,8 @@ for nn in np.arange(50,1000,50):
     all_auprcs_exp.append(all_auprcs)
 
 
-#with open('all_aurocs_exp_r' + str(oo) + '.pk', 'wb') as f:
-#	pickle.dump(file=f, obj=all_aurocs_exp)
-
-#with open('all_auprcs_exp_r' + str(oo) + '.pk', 'wb') as f:
-#	pickle.dump(file=f, obj=all_auprcs_exp)
-
 best_idx = np.argmax(np.array(all_aurocs_exp).sum(axis=1)[:,[0,2,4]].sum(axis=1) + np.array(all_auprcs_exp).sum(axis=1)[:,[0,2,4]].sum(axis=1))
-best = np.arange(50,1050,50)[best_idx]
+best = np.arange(50,1005,50)[best_idx]
 
 with open(dir + 'samples' + '_' + identifier + '_' + str(best) + '.pk', 'rb') as f:
     synth_data = pickle.load(file=f)
