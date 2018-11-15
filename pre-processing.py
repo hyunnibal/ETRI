@@ -1,9 +1,8 @@
-import csv
 import numpy as np
 import pandas as pd
 
-data = pd.read_csv('./Data/eicu_data_0910.csv',sep = ',',header = 0, index_col = 0)
-label = pd.read_csv('./Data/eicu_label_0910.csv',sep = ',',header = 0, index_col = 0)
+data = pd.read_csv('./data/eicu_data.csv',sep = ',',header = 0, index_col = 0)
+label = pd.read_csv('./data/eicu_label.csv',sep = ',',header = 0, index_col = 0)
 
 train_size = round(label.values.shape[0]*0.6)
 vali_size = round(label.values.shape[0]*0.2)
