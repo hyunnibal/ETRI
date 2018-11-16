@@ -15,4 +15,4 @@ total = {'X_train': data.values[range(0, train_size)],
          'Y_vali': label.values[range(train_size, train_size+vali_size)],
          'Y_test': label.values[range(train_size+vali_size, label.values.shape[0])]}
 
-np.save('./experiments/data/eicu.data',total)
+np.save('./data/eicu.data',total)

@@ -8,6 +8,8 @@ import model
 import utils
 
 from time import time
+
+from eICU_synthetic_dataset_generation import batch_size
 from mmd import median_pairwise_distance, mix_rbf_mmd2_and_ratio
 
 tf.logging.set_verbosity(tf.logging.ERROR)
@@ -154,23 +156,20 @@ for epoch in range(num_epochs):
 
     # compute mmd2 and, if available, prob density
     if epoch % eval_freq == 0:
-        model.dump_parameters(identifier + '_' + str(epoch), sess)
         t = time() - t0
         print('%d\t%.2f\t%.4f\t%.4f' % (epoch, t, D_loss_curr, G_loss_curr))
         if 'eICU' in data:
             gen_samples = []
             labels_gen_samples = []
-            print(int(len(train_seqs) / batch_size))
-            for batch_idx in range(int(len(train_seqs) / batch_size)/10):
+            for batch_idx in range(int(len(train_seqs) / batch_size)):
                 X_mb, Y_mb = data_utils.get_batch(train_seqs, batch_size, batch_idx, train_targets)
                 z_ = model.sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)
                 gen_samples_mb = sess.run(G_sample, feed_dict={Z: z_, CG: Y_mb})
                 gen_samples.append(gen_samples_mb)
                 labels_gen_samples.append(Y_mb)
-                print(batch_idx)
 
-            for batch_idx in range(int(len(vali_seqs) / batch_size)/10):
-                X_mb, Y_mb = data_utils.get_batch(vali_seqs, vali_targets, batch_size, batch_idx)
+            for batch_idx in range(int(len(vali_seqs) / batch_size)):
+                X_mb, Y_mb = data_utils.get_batch(vali_seqs, batch_size, batch_idx, vali_targets)
                 z_ = model.sample_Z(batch_size, seq_length, latent_dim, use_time=use_time)
                 gen_samples_mb = sess.run(G_sample, feed_dict={Z: z_, CG: Y_mb})
                 gen_samples.append(gen_samples_mb)
@@ -185,9 +184,6 @@ for epoch in range(num_epochs):
 
             with open(wd + '/labels_' + identifier + '_' + str(epoch) + '.pk', 'wb') as f:
                 pickle.dump(file=f, obj=labels_gen_samples)
-
-            # save the model used to generate this dataset
-            model.dump_parameters(identifier + '_' + str(epoch), sess)
 
     if shuffle:  # shuffle the training data
         perm = np.random.permutation(samples['train'].shape[0])

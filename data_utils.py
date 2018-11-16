@@ -285,14 +285,14 @@ def eICU_task(predict_label=False):
     """
     Load the eICU data for the extreme-value prediction task
     """
-    path = './experiments/data/eicu.data.npy'
+    path = './data/eicu.data.npy'
     data = np.load(path).item()
     # convert it into similar format
     labels = {'train': data['Y_train'], 'vali': data['Y_vali'], 'test': data['Y_test']}
     samples = {'train': data['X_train'], 'vali': data['X_vali'], 'test': data['X_test']}
     # reshape
-    #for (k, X) in samples.items():
-    #    samples[k] = X.reshape(-1, 16, 4)
+    for (k, X) in samples.items():
+        samples[k] = X.reshape(-1, 16, 4)
     return samples, labels
 
 def mnist(randomize=False):

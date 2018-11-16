@@ -54,7 +54,7 @@ for(k in 0:146){
 #데이터 통합
 data_idx<-grep('data',dir('./'))
 label_idx<-grep('label',dir('./'))
-
+dir<-dir()
 data_total = NULL
 for(i in data_idx){
   data_total = rbind(data_total, read.csv(dir[i],sep = ',', header = TRUE))
@@ -67,5 +67,5 @@ for(i in label_idx){
   print(dim(label_total))
 }
 
-write.csv(data_total[,-1],file='eicu_data.csv')
+write.csv(data_total[,-c(1,2)],file='eicu_data.csv')
 write.csv(data.matrix(label_total[,-1]),file='eicu_label.csv')
